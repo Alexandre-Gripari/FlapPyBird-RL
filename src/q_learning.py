@@ -109,7 +109,7 @@ for ep in range(EPISODES):
             q_values = Q[dx_bin, dy_bin, vy_bin, :]
             action = np.argmax(q_values)
 
-        next_state, reward, done = env.step(action)
+        next_state, reward, done, score = env.step(action)
         steps += 1
         total_reward += reward
 
@@ -121,7 +121,7 @@ for ep in range(EPISODES):
         visited_states = np.count_nonzero(np.any(state_action_counts > 0, axis=3))
         explored_percent = visited_states / TOTAL_STATES * 100
 
-        print(f"Ep {ep:5d} | reward: {total_reward:7.1f} | steps: {steps:4d} | "
+        print(f"Ep {ep:5d} | reward: {total_reward:7.1f} | steps: {steps:4d} | score: {score:3d} | "
               f"Visited: {visited_states:5d} ({explored_percent:5.2f}%) | "
               f"ε: {epsilon:.4f}")
 
@@ -147,12 +147,11 @@ for game in range(5):
         q_values = Q[dx_bin, dy_bin, vy_bin, :]
         action = np.argmax(q_values)
 
-        state, reward, done = env_test.step(action)
+        state, reward, done, score = env_test.step(action)
         steps += 1
 
     test_scores.append(steps)
-    pipes = steps // 100
-    print(f"Game {game + 1}: {steps} steps (~{pipes} pipes)")
+    print(f"Game {game + 1}: {steps} steps | Pipes passed: {score}")
 
 env_test.close()
 

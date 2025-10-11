@@ -63,13 +63,13 @@ def play_game(render=True, speed=30, verbose=True):
     done = False
     total_reward = 0
     steps = 0
-    pipes_passed = 0
+    score = 0
 
     while not done:
         q_values = get_Q(state)
         action = np.argmax(q_values)
 
-        state, reward, done = env.step(action)
+        state, reward, done, score = env.step(action)
         total_reward += reward
         steps += 1
 
@@ -78,13 +78,13 @@ def play_game(render=True, speed=30, verbose=True):
     if verbose:
         print(f"  Game finished!")
         print(f"   Steps: {steps}")
-        print(f"   Pipes passed: {pipes_passed}")
+        print(f"   Pipes passed: {score}")
         print(f"   Total reward: {total_reward:.1f}")
 
-    return steps, pipes_passed, total_reward
+    return steps, score, total_reward
 
 
 if __name__ == "__main__":
     total_learned_states = np.count_nonzero(np.sum(Q, axis=3))
-    print(f"Number of learned states: {total_learned_states} / {DX_BINS * DY_BINS * VEL_Y_BINS}")
+    print(f"Number of learned states: {total_learned_states} / {DX_BINS * DY_BINS * VEL_Y_BINS * len(ACTIONS)}")
     play_game(render=True, speed=30)

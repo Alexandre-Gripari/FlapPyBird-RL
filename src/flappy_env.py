@@ -173,7 +173,7 @@ class FlappyEnv:
         if self.render_mode:
             self._render_frame()
 
-        return state, reward, self.done
+        return state, reward, self.done, self.score.score
 
     def _render_frame(self):
         """Renders the current game state to the screen"""
