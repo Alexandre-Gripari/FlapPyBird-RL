@@ -1,8 +1,8 @@
+import argparse
+
 import numpy as np
 
 from .flappy_env import FlappyEnv
-
-Q = np.load("q_matrix_final_2.npy", allow_pickle=True)
 
 DX_MIN, DX_MAX = 0, 212
 DY_MIN, DY_MAX = -104, 256
@@ -36,22 +36,24 @@ def soft_discretize(state):
     return dx_bin, dy_bin, vy_bin
 
 
-def get_Q(state):
+def get_Q(state, Q):
     """
     Get Q-values for a given state
     :param state: (dx, dy, vel_y)
+    :param Q: Q-matrix
     :return: Q-values for both actions
     """
     dx_bin, dy_bin, vy_bin = soft_discretize(state)
     return Q[dx_bin, dy_bin, vy_bin, :]
 
 
-def play_game(render=True, speed=30, verbose=True):
+def play_game(render=True, speed=30, verbose=True, Q=None):
     """
     Play one game with the trained agent
     :param render: whether to render the game
     :param speed: game speed (higher is faster)
     :param verbose: whether to print game stats
+    :param Q: Q-matrix
     :return: (steps, pipes_passed, total_reward)
     where:
         steps: number of steps taken
@@ -66,7 +68,7 @@ def play_game(render=True, speed=30, verbose=True):
     last_2_pipes = []
 
     while not done:
-        q_values = get_Q(state)
+        q_values = get_Q(state, Q)
         action = np.argmax(q_values)
 
         state, reward, done, info = env.step(action)
@@ -88,6 +90,11 @@ def play_game(render=True, speed=30, verbose=True):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--q_matrix_path", type=str, default="q_matrix_final.npy")
+    args = parser.parse_args()
+
+    Q = np.load(args.q_matrix_path, allow_pickle=True)
     total_learned_states = np.count_nonzero(np.sum(Q, axis=3))
     print(f"Number of learned states: {total_learned_states} / {DX_BINS * DY_BINS * VEL_Y_BINS * len(ACTIONS)}")
     play_game(render=True, speed=30)
