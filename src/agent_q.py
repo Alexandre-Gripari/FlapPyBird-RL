@@ -92,9 +92,23 @@ def play_game(render=True, speed=30, verbose=True, Q=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--q_matrix_path", type=str, default="q_matrix_final.npy")
+    parser.add_argument("--benchmark", action="store_true", help="Launch a benchmark of 100 games")
     args = parser.parse_args()
 
     Q = np.load(args.q_matrix_path, allow_pickle=True)
     total_learned_states = np.count_nonzero(np.sum(Q, axis=3))
     print(f"Number of learned states: {total_learned_states} / {DX_BINS * DY_BINS * VEL_Y_BINS * len(ACTIONS)}")
-    play_game(render=True, speed=30)
+
+    if args.benchmark:
+        scores = []
+        for i in range(100):
+            _, score, _ = play_game(render=False, speed=0, verbose=False, Q=Q)
+            scores.append(score)
+            if i % 10 == 0:
+                print(f"Game {i}")
+        print(f"Benchmark sur 100 parties :")
+        print(f"  Score moyen : {np.mean(scores):.2f}")
+        print(f"  Meilleur score : {np.max(scores)}")
+        print(f"  Pire score : {np.min(scores)}")
+    else:
+        play_game(render=True, speed=60, Q=Q)
