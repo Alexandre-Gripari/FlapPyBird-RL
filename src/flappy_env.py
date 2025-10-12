@@ -166,10 +166,13 @@ class FlappyEnv:
         self.total_reward += reward
         state = self._get_state()
 
+        if self.score.score >= 1000:
+            return state, 0, True, (self.score.score, prev_pipe, up)
+
         if self.render_mode:
             self._render_frame()
 
-        return state, reward, self.done, self.score.score
+        return state, reward, self.done, (self.score.score, prev_pipe, up)
 
     def _render_frame(self):
         """Renders the current game state to the screen"""

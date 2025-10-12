@@ -63,25 +63,28 @@ def play_game(render=True, speed=30, verbose=True):
     done = False
     total_reward = 0
     steps = 0
-    score = 0
+    last_2_pipes = []
 
     while not done:
         q_values = get_Q(state)
         action = np.argmax(q_values)
 
-        state, reward, done, score = env.step(action)
+        state, reward, done, info = env.step(action)
         total_reward += reward
         steps += 1
+        last_2_pipes = [info[1].y if info[1] is not None else None, info[2].y if info[2] is not None else None]
 
     env.close()
 
     if verbose:
-        print(f"  Game finished!")
+        print(f"   Game finished!")
+        print(f"   Last state: dx={state[0]}, dy={state[1]}, vel_y={state[2]}")
+        print(f"   Last 2 pipes: {last_2_pipes}")
         print(f"   Steps: {steps}")
-        print(f"   Pipes passed: {score}")
+        print(f"   Pipes passed: {info[0]}")
         print(f"   Total reward: {total_reward:.1f}")
 
-    return steps, score, total_reward
+    return steps, info[0], total_reward
 
 
 if __name__ == "__main__":
