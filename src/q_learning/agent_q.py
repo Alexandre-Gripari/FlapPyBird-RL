@@ -65,7 +65,7 @@ if __name__ == "__main__":
     if args.benchmark:
         scores = []
         for i in range(100):
-            _, score, _ = play_game(render=False, speed=0, verbose=False, q=Q, config=config)
+            _, score, _ = play_game(render=True, speed=0, verbose=False, q=Q, config=config)
             scores.append(score)
             if i % 10 == 0:
                 print(f"Game {i}")
