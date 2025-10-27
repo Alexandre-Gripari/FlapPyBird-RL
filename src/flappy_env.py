@@ -167,7 +167,7 @@ class FlappyEnv:
         state = self._get_state()
 
         if self.score.score >= 1000:
-            return state, 0, True, (self.score.score, prev_pipe, up)
+            return state, reward, True, (self.score.score, prev_pipe, up)
 
         if self.render_mode:
             self._render_frame()

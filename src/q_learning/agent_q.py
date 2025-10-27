@@ -7,13 +7,14 @@ from ..flappy_env import FlappyEnv
 from .q_learning import TrainingConfig
 
 
-def play_game(render=True, speed=30, verbose=True, q=None):
+def play_game(render=True, speed=30, verbose=True, q=None, config=TrainingConfig()):
     """
     Play one game with the trained agent
     :param render: whether to render the game
     :param speed: game speed (higher is faster)
     :param verbose: whether to print game stats
     :param q: Q-matrix
+    :param config: TrainingConfig instance
     :return: (steps, pipes_passed, total_reward)
     where:
         steps: number of steps taken
@@ -29,7 +30,7 @@ def play_game(render=True, speed=30, verbose=True, q=None):
     info = {}
 
     while not done:
-        q_values = get_q(state, q, TrainingConfig())
+        q_values = get_q(state, q, config)
         action = np.argmax(q_values)
 
         state, reward, done, info = env.step(action)
@@ -64,7 +65,7 @@ if __name__ == "__main__":
     if args.benchmark:
         scores = []
         for i in range(100):
-            _, score, _ = play_game(render=False, speed=0, verbose=False, q=Q)
+            _, score, _ = play_game(render=False, speed=0, verbose=False, q=Q, config=config)
             scores.append(score)
             if i % 10 == 0:
                 print(f"Game {i}")
@@ -73,4 +74,4 @@ if __name__ == "__main__":
         print(f"  Meilleur score : {np.max(scores)}")
         print(f"  Pire score : {np.min(scores)}")
     else:
-        play_game(render=True, speed=30, q=Q)
+        play_game(render=True, speed=30, q=Q, config=config)
