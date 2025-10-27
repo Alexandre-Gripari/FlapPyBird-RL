@@ -2,8 +2,9 @@ import argparse
 
 import numpy as np
 
-from .utils import TOTAL_STATES, get_q
+from .utils import get_q
 from ..flappy_env import FlappyEnv
+from .q_learning import TrainingConfig
 
 
 def play_game(render=True, speed=30, verbose=True, q=None):
@@ -25,9 +26,10 @@ def play_game(render=True, speed=30, verbose=True, q=None):
     total_reward = 0
     steps = 0
     last_2_pipes = []
+    info = {}
 
     while not done:
-        q_values = get_q(state, q)
+        q_values = get_q(state, q, TrainingConfig())
         action = np.argmax(q_values)
 
         state, reward, done, info = env.step(action)
@@ -53,10 +55,11 @@ if __name__ == "__main__":
     parser.add_argument("--q_matrix_path", type=str, default="q_matrix_final.npy")
     parser.add_argument("--benchmark", action="store_true", help="Launch a benchmark of 100 games")
     args = parser.parse_args()
+    config = TrainingConfig()
 
     Q = np.load(args.q_matrix_path, allow_pickle=True)
     total_learned_states = np.count_nonzero(np.sum(Q, axis=3))
-    print(f"Number of learned states: {total_learned_states} / {TOTAL_STATES}")
+    print(f"Number of learned states: {total_learned_states} / {config.dx_bins * config.dy_bins * config.vel_y_bins * len(config.actions)}")
 
     if args.benchmark:
         scores = []
