@@ -1,8 +1,8 @@
 ﻿import numpy as np
 import torch
 
-from .flappy_env import FlappyEnv
-from .trainable_agent import TrainableAgent
+from src.flappy_env import FlappyEnv
+from .dqn_agent import DQNAgent
 
 GAMMA = 0.99
 EPISODES = 20000
@@ -11,7 +11,7 @@ EPSILON_START = 1.0
 EPSILON_END = 0.0005
 EPSILON_DECAY = 0.999975
 
-trainable_agent = TrainableAgent(
+dqn_agent = DQNAgent(
     input_size=3,
     output_size=2,
     epsilon=EPSILON_START,
@@ -52,8 +52,9 @@ for ep in range(1, EPISODES):
     steps = 0
 
     while not done:
-        action = trainable_agent.get_action(state)
-        next_state, reward, done, score = env.step(action)
+        action = dqn_agent.get_action(state)
+        next_state, reward, done, info = env.step(action)
+        score = info[0]
         next_state = normalize_state(next_state)
 
         if score > best_score:
@@ -63,13 +64,13 @@ for ep in range(1, EPISODES):
         total_steps += 1
 
         if total_steps % TARGET_UPDATE == 0:
-            trainable_agent.target_net.load_state_dict(trainable_agent.policy_net.state_dict())
+            dqn_agent.target_net.load_state_dict(dqn_agent.policy_net.state_dict())
 
-        trainable_agent.memory.append((state, action, reward, next_state, done))
-        trainable_agent.epsilon = max(EPSILON_END, trainable_agent.epsilon * EPSILON_DECAY)
+        dqn_agent.memory.append((state, action, reward, next_state, done))
+        dqn_agent.epsilon = max(EPSILON_END, dqn_agent.epsilon * EPSILON_DECAY)
 
         if steps % 4 == 0:
-            trainable_agent.replay()
+            dqn_agent.replay()
 
         state = next_state
 
@@ -83,14 +84,14 @@ for ep in range(1, EPISODES):
         print(
             f"Ep {ep:5d} | avg reward: {avg_reward:7.1f} | steps: {steps:4d} | "
             f"best score: {best_score:3d} | avg score: {avg_score_val:.2f} | "
-            f"epsilon: {trainable_agent.epsilon:.4f} | "
-            f"lr: {trainable_agent.optimizer.param_groups[0]['lr']:.6f} | "
-            f"loss: {trainable_agent.get_loss(reset=True):.5f}"
+            f"epsilon: {dqn_agent.epsilon:.4f} | "
+            f"lr: {dqn_agent.optimizer.param_groups[0]['lr']:.6f} | "
+            f"loss: {dqn_agent.get_loss(reset=True):.5f}"
         )
 
         best_score = 0
         total_reward = 0
         avg_score = 0
-        torch.save(trainable_agent.policy_net.state_dict(), f"models/flappy_dqn_model_{ep}.pth")
+        torch.save(dqn_agent.policy_net.state_dict(), f"models/flappy_dqn_model_{ep}.pth")
 
-torch.save(trainable_agent.policy_net.state_dict(), "models/flappy_dqn_model_final.pth")
+torch.save(dqn_agent.policy_net.state_dict(), "models/flappy_dqn_model_final.pth")

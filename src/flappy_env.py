@@ -165,6 +165,10 @@ class FlappyEnv:
         dy = gap_center_y - self.player.y
         dy = max(-screen_height // 2, min(screen_height // 2, dy))
 
+        if prev_pipe and id(prev_pipe) != self.last_pipe_id:
+            self.last_pipe_id = id(prev_pipe)
+            self.score.add()
+
         state = self._get_state()
 
         reward = self.compute_reward(action, prev_pipe, prev_pipe2, self.done, dy)

@@ -7,7 +7,27 @@ import torch
 from .q_network import QNetwork
 
 
-class TrainableAgent:
+class DQNAgent:
+    """
+    Deep Q-Learning Agent
+    ----------------------------------
+    Implements a Deep Q-Learning agent with experience replay and target network.
+    Uses an epsilon-greedy policy for action selection.
+    1. Initializes policy and target networks.
+    2. Stores experiences in a replay buffer.
+    3. Samples mini-batches from the replay buffer to train the policy network.
+    4. Updates the target network periodically.
+    5. Uses Smooth L1 Loss (Huber Loss) for training stability.
+    6. Clips gradients to prevent exploding gradients.
+    7. Tracks average loss over training iterations.
+    8. Supports GPU acceleration if available.
+    :param input_size: Size of the input state
+    :param output_size: Number of possible actions
+    :param epsilon: Initial exploration rate for epsilon-greedy policy
+    :param gamma: Discount factor for future rewards
+    :param lr: Learning rate for the optimizer
+    :param batch_size: Mini-batch size for training
+    """
     def __init__(self, input_size, output_size, epsilon: float = 1,
                  gamma: float = 0.99,
                  lr: float = 1e-3,
@@ -39,6 +59,11 @@ class TrainableAgent:
         self.loss_count = 0
 
     def get_action(self, state):
+        """
+        Select an action using epsilon-greedy policy
+        :param state: Current state
+        :return: Selected action
+        """
         if random.uniform(0, 1) < self.epsilon:
             return random.randrange(self.output_size)
         else:
@@ -48,6 +73,10 @@ class TrainableAgent:
             return q_values.argmax().item()
 
     def replay(self):
+        """
+        Sample a mini-batch from memory and perform a training step
+        :return: None
+        """
         if len(self.memory) < self.batch_size:
             return
 
@@ -81,6 +110,11 @@ class TrainableAgent:
         self.optimizer.step()
 
     def get_loss(self, reset=False):
+        """
+        Get the average loss over training iterations
+        :param reset: Whether to reset the loss tracking after getting the value
+        :return: Average loss
+        """
         if self.loss_count == 0:
             return 0.0
         loss = self.loss_total / self.loss_count

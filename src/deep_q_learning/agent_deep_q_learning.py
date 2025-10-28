@@ -1,11 +1,11 @@
 ﻿import numpy as np
 import torch
 
-from .flappy_env import FlappyEnv
+from src.flappy_env import FlappyEnv
 from .q_network import QNetwork
 
 agent = QNetwork(3, 2)
-agent.load_state_dict(torch.load("flappy_dqn_model.pth"))
+agent.load_state_dict(torch.load("models/flappy_dqn_model.pth"))
 agent.eval()
 
 DX_MIN, DX_MAX = 0, 212
