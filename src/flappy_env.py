@@ -3,6 +3,7 @@ import pygame
 
 from .entities import PlayerMode, Score, Pipes, Player, Floor, Background
 from .flappy import Flappy
+from .utils.reward_config import RewardConfig
 
 
 class FlappyEnv:
@@ -25,7 +26,7 @@ class FlappyEnv:
     The game ends when the player collides with a pipe or the ground.
     """
 
-    def __init__(self, render=False, speed=30):
+    def __init__(self, render=False, speed=30, deep_qlearning=False):
         self.total_reward = None
         self.done = None
         self.score = None
@@ -41,6 +42,7 @@ class FlappyEnv:
         self.screen = self.config.screen
         self.clock = pygame.time.Clock()
         self.reset()
+        self.rewards = RewardConfig.from_mode(deep_qlearning)
 
     def reset(self):
         """
@@ -119,6 +121,20 @@ class FlappyEnv:
 
         return np.array([int(dx), int(dy), int(self.player.vel_y)], dtype=np.int32)
 
+    def compute_reward(self, action: int, prev_pipe, prev_pipe2, done: bool, dy: float) -> float:
+        r = self.rewards.frame_alive
+        if action == 1:
+            r += self.rewards.flap
+        if -30 < dy < 30:
+            r += self.rewards.near_pipe_gap
+        if prev_pipe and id(prev_pipe) != self.last_pipe_id:
+            r += self.rewards.pass_pipe
+        elif prev_pipe2 and id(prev_pipe2) != self.last_pipe_id:
+            r += self.rewards.pass_near_pipe
+        if done:
+            r += self.rewards.die
+        return r
+
     def step(self, action):
         """
         Make a step in the environment.
@@ -129,11 +145,10 @@ class FlappyEnv:
             reward: total reward for this step
             done: True if the game is over
         """
-        reward = 0.1
+
 
         if action == 1:
             self.player.flap()
-            reward -= 0.05
 
         self.background.tick()
         self.floor.tick()
@@ -154,21 +169,9 @@ class FlappyEnv:
         dy = gap_center_y - self.player.y
         dy = max(-screen_height // 2, min(screen_height // 2, dy))
 
-        if -30 < dy < 30:
-            reward += 0.2
-
-        if prev_pipe and id(prev_pipe) != self.last_pipe_id:
-            reward += 20
-            self.last_pipe_id = id(prev_pipe)
-            self.score.add()
-        elif prev_pipe2 and id(prev_pipe2) != self.last_pipe_id:
-            reward += 5
-
-        if self.done:
-            reward -= 10
-
-        self.total_reward += reward
         state = self._get_state()
+
+        reward = self.compute_reward(action, prev_pipe, prev_pipe2, self.done, dy)
 
         if self.render_mode:
             self._render_frame()
