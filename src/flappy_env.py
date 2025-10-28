@@ -69,15 +69,12 @@ class FlappyEnv:
 
     def _get_next_pipe(self):
         """
-        :return: the next pipe (up, low)
-        where:
-            up: upper pipe
-            low: lower pipe
+        :return: the next pipe
         """
-        for up, low in zip(self.pipes.upper, self.pipes.lower):
+        for up in self.pipes.upper:
             if up.x + up.w > self.player.x:
-                return up, low
-        return self.pipes.upper[0], self.pipes.lower[0]
+                return up
+        return self.pipes.upper[0]
 
     def _get_prev_pipe(self):
         """
@@ -107,7 +104,7 @@ class FlappyEnv:
             dy: distance to center of next pipe gap (-148 to 256)
             vel_y: player vertical velocity (-8 to 10)
         """
-        up, low = self._get_next_pipe()
+        up = self._get_next_pipe()
 
         screen_width = self.config.window.width
         screen_height = self.config.window.height
@@ -160,8 +157,7 @@ class FlappyEnv:
 
         prev_pipe = self._get_prev_pipe()
         prev_pipe2 = self._get_prev_pipe2()
-
-        up, low = self._get_next_pipe()
+        up = self._get_next_pipe()
 
         screen_height = self.config.window.height
 
@@ -173,10 +169,13 @@ class FlappyEnv:
 
         reward = self.compute_reward(action, prev_pipe, prev_pipe2, self.done, dy)
 
+        if self.score.score >= 1000:
+            return state, reward, True, (self.score.score, prev_pipe, up)
+
         if self.render_mode:
             self._render_frame()
 
-        return state, reward, self.done, self.score.score
+        return state, reward, self.done, (self.score.score, prev_pipe, up)
 
     def _render_frame(self):
         """Renders the current game state to the screen"""
