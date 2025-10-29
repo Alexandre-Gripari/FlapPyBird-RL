@@ -28,6 +28,7 @@ class DQNAgent:
     :param lr: Learning rate for the optimizer
     :param batch_size: Mini-batch size for training
     """
+
     def __init__(self, input_size, output_size, epsilon: float = 1,
                  gamma: float = 0.99,
                  lr: float = 1e-3,
@@ -53,6 +54,8 @@ class DQNAgent:
             lr=lr
         )
 
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.9995)
+
         self.loss_fct = torch.nn.SmoothL1Loss()
 
         self.loss_total = 0
@@ -71,6 +74,13 @@ class DQNAgent:
             with torch.no_grad():
                 q_values = self.policy_net(state)
             return q_values.argmax().item()
+
+    def step_scheduler(self):
+        for lr in self.optimizer.param_groups:
+            if lr['lr'] < 1e-6:
+                return
+        if self.scheduler:
+            self.scheduler.step()
 
     def replay(self):
         """

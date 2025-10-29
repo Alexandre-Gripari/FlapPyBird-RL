@@ -8,7 +8,7 @@ GAMMA = 0.99
 EPISODES = 20000
 LEARNING_RATE = 5e-4
 EPSILON_START = 1.0
-EPSILON_END = 0.0005
+EPSILON_END = 0.00005
 EPSILON_DECAY = 0.999975
 
 dqn_agent = DQNAgent(
@@ -18,7 +18,6 @@ dqn_agent = DQNAgent(
     gamma=GAMMA,
     lr=LEARNING_RATE,
     batch_size=256,
-
 )
 
 env = FlappyEnv(render=False, speed=0, deep_qlearning=True)
@@ -76,6 +75,8 @@ for ep in range(1, EPISODES):
 
         total_reward += reward
     avg_score += score
+
+    dqn_agent.step_scheduler()
 
     if ep % 50 == 0:
         avg_reward = total_reward / 50
