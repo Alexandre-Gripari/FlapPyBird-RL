@@ -23,7 +23,7 @@ def soft_discretize(state, config):
     :param config: TrainingConfig instance
     :return: (dx_bin, dy_bin, vy_bin)
     """
-    dx, dy, vy = state
+    dx, dy, vy, _ = state
 
     dx = np.clip(dx, config.dx_min, config.dx_max)
     dy = np.clip(dy, config.dy_min, config.dy_max)
