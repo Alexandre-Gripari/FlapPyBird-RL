@@ -1,18 +1,25 @@
-﻿import numpy as np
+﻿import argparse
+
 import torch
 
 from src.flappy_env import FlappyEnv
 from .dqn_agent import DQNAgent
+from .utils import normalize_state
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--increase_difficulty", type=bool, default=False)
+args = parser.parse_args()
+increase_difficulty = args.increase_difficulty
 
 GAMMA = 0.99
 EPISODES = 20000
 LEARNING_RATE = 5e-4
 EPSILON_START = 1.0
 EPSILON_END = 0.00005
-EPSILON_DECAY = 0.999975
+EPSILON_DECAY = 0.9995
 
 dqn_agent = DQNAgent(
-    input_size=3,
+    input_size=4 if increase_difficulty else 3,
     output_size=2,
     epsilon=EPSILON_START,
     gamma=GAMMA,
@@ -20,22 +27,7 @@ dqn_agent = DQNAgent(
     batch_size=256,
 )
 
-env = FlappyEnv(render=False, speed=0, deep_qlearning=True)
-
-
-def normalize_state(state):
-    """
-    Normalize the state (dx, dy, vy) to a range suitable for neural network input.
-    :param state: (dx, dy, vel_y)
-    :return: normalized state as np.array([dx_norm, dy_norm, vy_norm])
-    """
-    dx, dy, vy = state
-
-    dx_norm = np.clip(dx / 212.0, 0, 2)
-    dy_norm = np.clip(dy / 200.0, -1.5, 1.5)
-    vy_norm = np.clip(vy / 10.0, -1, 1)
-
-    return np.array([dx_norm, dy_norm, vy_norm], dtype=np.float32)
+env = FlappyEnv(render=False, speed=0, deep_qlearning=True, increase_difficulty=increase_difficulty)
 
 
 TARGET_UPDATE = 1000

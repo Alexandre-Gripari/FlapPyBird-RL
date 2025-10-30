@@ -1,51 +1,39 @@
-﻿import numpy as np
+﻿import argparse
+
+import numpy as np
 import torch
 
+from src.deep_q_learning.utils import normalize_state
 from src.flappy_env import FlappyEnv
 from .q_network import QNetwork
 
-agent = QNetwork(3, 2)
-agent.load_state_dict(torch.load("models/flappy_dqn_model.pth"))
+parser = argparse.ArgumentParser()
+parser.add_argument("--increase_difficulty", type=bool, default=False)
+parser.add_argument("--benchmark", action="store_true", help="Launch a benchmark of 100 games")
+parser.add_argument("--velocity_model", type=bool, default=False,
+                    help="Use the model trained with velocity in the state")
+args = parser.parse_args()
+
+agent = QNetwork(4 if args.velocity_model else 3, 2)
+agent.load_state_dict(
+    torch.load("models/flappy_dqn_model_vel.pth" if args.velocity_model else "models/flappy_dqn_model.pth"))
 agent.eval()
 
-DX_MIN, DX_MAX = 0, 212
-DY_MIN, DY_MAX = -104, 256
-VEL_Y_MIN, VEL_Y_MAX = -8, 10
 
-DX_BINS = 24
-DY_BINS = 36
-VEL_Y_BINS = 5
-ACTIONS = [0, 1]
-
-
-def normalize_state(state):
-    """
-    Normalize the state (dx, dy, vy) to a range suitable for neural network input.
-    :param state: (dx, dy, vel_y)
-    :return: normalized state as np.array([dx_norm, dy_norm, vy_norm])
-    """
-    dx, dy, vy = state
-
-    dx_norm = np.clip(dx / 212.0, 0, 2)
-    dy_norm = np.clip(dy / 200.0, -1.5, 1.5)
-    vy_norm = np.clip(vy / 10.0, -1, 1)
-
-    return np.array([dx_norm, dy_norm, vy_norm], dtype=np.float32)
-
-
-def play_game(render=True, speed=30, verbose=True):
+def play_game(render=True, speed=30, verbose=True, increase_difficulty=False):
     """
     Play one game with the trained agent
     :param render: whether to render the game
     :param speed: game speed (higher is faster)
     :param verbose: whether to print game stats
+    :param increase_difficulty: whether to increase difficulty over time (faster pipes)
     :return: (steps, pipes_passed, total_reward)
     where:
         steps: number of steps taken
         pipes_passed: number of pipes passed
         total_reward: total reward accumulated
     """
-    env = FlappyEnv(render=render, speed=speed)
+    env = FlappyEnv(render=render, speed=speed, increase_difficulty=increase_difficulty)
     state = env.reset()
     state = normalize_state(state)
     done = False
@@ -75,4 +63,16 @@ def play_game(render=True, speed=30, verbose=True):
 
 
 if __name__ == "__main__":
-    play_game(render=True, speed=0, verbose=True)
+    play_game(render=True, speed=0, verbose=True, increase_difficulty=args.increase_difficulty)
+
+    if args.benchmark:
+        scores = []
+        for i in range(100):
+            _, score, _ = play_game(render=False, speed=0, verbose=False, increase_difficulty=args.increase_difficulty)
+            scores.append(score[0])
+            if i % 10 == 0:
+                print(f"Game {i}")
+        print(f"Benchmark sur 100 parties :")
+        print(f"  Score moyen : {np.mean(scores):.2f}")
+        print(f"  Meilleur score : {np.max(scores)}")
+        print(f"  Pire score : {np.min(scores)}")

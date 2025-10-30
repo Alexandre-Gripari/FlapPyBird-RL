@@ -4,6 +4,7 @@
 class QNetwork(nn.Module):
     def __init__(self, state_size, action_size):
         super(QNetwork, self).__init__()
+        self.state_size = state_size
 
         self.model = nn.Sequential(
             nn.Linear(state_size, 128),
@@ -23,4 +24,6 @@ class QNetwork(nn.Module):
         )
 
     def forward(self, state):
+        if state.shape[-1] > self.state_size:
+            state = state[..., :self.state_size]
         return self.model(state)

@@ -1,14 +1,14 @@
 import random
 from typing import List
 
-from ..utils import GameConfig
 from .entity import Entity
+from ..utils import GameConfig
 
 
 class Pipe(Entity):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, vel_x, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.vel_x = -5
+        self.vel_x = -vel_x
 
     def draw(self) -> None:
         self.x += self.vel_x
@@ -19,13 +19,16 @@ class Pipes(Entity):
     upper: List[Pipe]
     lower: List[Pipe]
 
-    def __init__(self, config: GameConfig) -> None:
+    def __init__(self, increase_difficulty, config: GameConfig) -> None:
         super().__init__(config)
         self.pipe_gap = 120
         self.top = 0
         self.bottom = self.config.window.viewport_height
         self.upper = []
         self.lower = []
+        self.increase_difficulty = increase_difficulty
+        self.vel_x = 5.0
+        self.vel_increment = 0.1
         self.spawn_initial_pipes()
 
     def tick(self) -> None:
@@ -87,7 +90,11 @@ class Pipes(Entity):
         pipe_height = self.config.images.pipe[0].get_height()
         pipe_x = self.config.window.width + 10
 
+        if self.increase_difficulty:
+            self.vel_x += self.vel_increment
+
         upper_pipe = Pipe(
+            self.vel_x,
             self.config,
             self.config.images.pipe[0],
             pipe_x,
@@ -95,6 +102,7 @@ class Pipes(Entity):
         )
 
         lower_pipe = Pipe(
+            self.vel_x,
             self.config,
             self.config.images.pipe[1],
             pipe_x,
