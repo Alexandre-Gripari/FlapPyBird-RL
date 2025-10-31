@@ -22,18 +22,55 @@ Setup (as tested on MacOS)
 
 5. Optionally run `make web` to run the game in the browser (`pygbag`).
 
-Notable forks
--------------
-- [FlapPyBlink Blink to control the bird](https://github.com/sero583/FlappyBlink)
-- [FlappyBird Fury Mode](https://github.com/Cc618/FlapPyBird)
-- [FlappyBird Model Predictive Control](https://github.com/philzook58/FlapPyBird-MPC)
-- [FlappyBird OpenFrameworks Port](https://github.com/TheLogicMaster/ofFlappyBird)
-- [FlappyBird On Quantum Computing](https://github.com/WingCode/QuFlapPyBird)
 
-Made something awesome from FlapPyBird? Add it to the list :)
+# Flappy Bird Agent Instructions
 
+This repository is a fork of a Flappy Bird clone that includes implementations of Q-Learning and Deep Q-Learning agents. Below are instructions on how to train and run these agents.
+
+When using Q-Learning, ensure that the discretization parameters in the agent match those used during training.
+
+## Q-Learning
+
+### Start Training
+```bash
+python -m src.q_learning.q_learning
+````
+
+### Run the Agent
+
+```bash
+python -m src.q_learning.agent_q --q_matrix_path=PATH_TO_Q_MATRIX.npy
+```
+
+### Benchmarking
+
+To benchmark the trained agent, run:
+
+```bash
+python -m src.q_learning.benchmark --q_matrix_path=PATH_TO_Q_MATRIX.npy --benchmark
+```
+
+### Modify Parameters
+
+All parameters (hyperparameters, state discretization, number of episodes) are defined in a dataclass called `TrainingConfig`. You can either modify the default values directly or create an instance of this class with your desired parameters.
+
+---
+
+## Deep-Q Learning
+
+### Start Training
+
+```bash
+python -m src.deep_q_learning.deep_q_learning
+```
+
+### Run the Agent
+
+```bash
+python -m src.deep_q_learning.agent_deep_q_learning
+```
 
 Demo
 ----------
 
-https://user-images.githubusercontent.com/2307626/130682424-9254b32d-efe0-406e-a6ea-3fb625a2df5e.mp4
+https://github.com/Alexandre-Gripari/FlapPyBird-RL/blob/master/videos/deep_q_learning_100.mp4
